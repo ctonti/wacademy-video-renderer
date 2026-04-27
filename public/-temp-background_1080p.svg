@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <rect width="1920" height="1080" fill="#000"/>
+  <rect y="1020" width="1920" height="60" fill="#1a1a1a"/>
+  <circle cx="880" cy="1050" r="6" fill="#ff9900"/>
+  <text x="896" y="1055" font-family="sans-serif" font-size="20" fill="#fff" font-weight="600">w.academy</text>
+  <circle cx="1030" cy="1050" r="4" fill="#2dd4bf"/>
+</svg>

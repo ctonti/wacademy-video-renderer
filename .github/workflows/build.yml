@@ -1,0 +1,56 @@
+name: Build Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }} (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        include:
+          - os: macos-14
+            arch: arm64
+            build_cmd: npm run build:mac -- --arm64
+            artifact_name: mac-silicon
+            asset_path: dist-electron/*.dmg
+          - os: macos-14
+            arch: x64
+            build_cmd: npm install --arch=x64 --force ffmpeg-static ffprobe-static && npm run build:mac -- --x64
+            artifact_name: mac-intel
+            asset_path: dist-electron/*.dmg
+          - os: windows-latest
+            arch: x64
+            build_cmd: npm run build:win -- --x64
+            artifact_name: windows
+            asset_path: dist-electron/*.exe
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build App
+        run: ${{ matrix.build_cmd }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: VideoRenderer-${{ matrix.artifact_name }}
+          path: ${{ matrix.asset_path }}
+          if-no-files-found: error
