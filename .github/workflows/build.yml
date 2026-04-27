@@ -54,3 +54,37 @@ jobs:
           name: VideoRenderer-${{ matrix.artifact_name }}
           path: ${{ matrix.asset_path }}
           if-no-files-found: error
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+
+      - name: Generate release tag
+        id: tag
+        run: echo "tag=v1.0.$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: VideoRenderer ${{ steps.tag.outputs.tag }}
+          body: |
+            ## Download VideoRenderer
+
+            | Piattaforma | File |
+            |---|---|
+            | 🍎 Mac Apple Silicon (M1/M2/M3/M4) | `.dmg` dal pacchetto **mac-silicon** |
+            | 🍏 Mac Intel | `.dmg` dal pacchetto **mac-intel** |
+            | 🪟 Windows | `.exe` dal pacchetto **windows** |
+          files: release-assets/**/*
+          draft: false
+          prerelease: false
