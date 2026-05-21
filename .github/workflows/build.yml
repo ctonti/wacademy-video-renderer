@@ -21,7 +21,7 @@ jobs:
             asset_path: dist-electron/*.dmg
           - os: macos-14
             arch: x64
-            build_cmd: npm install --arch=x64 --force ffmpeg-static ffprobe-static && npm run build:mac -- --x64
+            build_cmd: npm run build:mac -- --x64
             artifact_name: mac-intel
             asset_path: dist-electron/*.dmg
           - os: windows-latest
@@ -43,8 +43,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Force x64 binaries for Intel build
+        if: matrix.arch == 'x64' && runner.os == 'macOS'
+        run: |
+          rm -rf node_modules/ffmpeg-static node_modules/ffprobe-static
+          npm_config_arch=x64 npm install --force ffmpeg-static ffprobe-static
+          echo "--- Verifying ffmpeg binary architecture ---"
+          file node_modules/ffmpeg-static/ffmpeg
+          file node_modules/ffprobe-static/bin/darwin/x64/ffprobe || file node_modules/ffprobe-static/bin/*/ffprobe || true
+
       - name: Build App
-        run: ${{ matrix.build_cmd }}
+        run: |
+          if [ "${{ matrix.arch }}" = "x64" ] && [ "${{ runner.os }}" = "macOS" ]; then
+            npm run build && npx electron-builder --mac --x64
+          else
+            ${{ matrix.build_cmd }}
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
